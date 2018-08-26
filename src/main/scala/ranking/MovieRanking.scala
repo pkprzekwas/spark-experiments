@@ -1,4 +1,4 @@
-package movieRanking
+package ranking
 
 import org.apache.log4j.{Level, Logger}
 import org.apache.spark.SparkConf
@@ -9,7 +9,6 @@ trait Context {
     .setAppName("The Move dataset")
     .setMaster("local[*]")
     .set("spark.cores.max", "2")
-
   lazy val sparkSession = SparkSession
     .builder()
     .config(sparkConf)
