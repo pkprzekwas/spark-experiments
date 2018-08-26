@@ -1,19 +1,8 @@
 package ranking
 
 import org.apache.log4j.{Level, Logger}
-import org.apache.spark.SparkConf
-import org.apache.spark.sql.{SaveMode, SparkSession}
-
-trait Context {
-  lazy val sparkConf = new SparkConf()
-    .setAppName("The Move dataset")
-    .setMaster("local[*]")
-    .set("spark.cores.max", "2")
-  lazy val sparkSession = SparkSession
-    .builder()
-    .config(sparkConf)
-    .getOrCreate()
-}
+import org.apache.spark.sql.SaveMode
+import helpers.Context
 
 object MovieRanking extends App with Context {
   Logger.getLogger("org").setLevel(Level.ERROR)
@@ -62,7 +51,6 @@ object MovieRanking extends App with Context {
       ranking,
       movies.col("id") === ranking.col("movieId")
     )
-    .filter("numberOfVotes > 1000")
     .orderBy(desc("averageRate"))
     .limit(100)
 
