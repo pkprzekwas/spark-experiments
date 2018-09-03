@@ -8,7 +8,7 @@ import org.apache.spark.sql.types._
 object TweetStream extends App with Context {
   Logger.getLogger("org").setLevel(Level.ERROR)
 
-  val data_stream = sparkSession
+  val dataStream = sparkSession
     .readStream
     .format("kafka")
     .option("kafka.bootstrap.servers", "localhost:9092")
@@ -17,23 +17,26 @@ object TweetStream extends App with Context {
     .load
 
   val schema = StructType(Seq(
-    StructField("created_at", StringType, true),
-    StructField("id", StringType, true),
-    StructField("id_str", StringType, true),
-    StructField("text", StringType, true),
-    StructField("retweet_count", StringType, true),
-    StructField("favorite_count", StringType, true),
-    StructField("favorited", StringType, true),
-    StructField("retweeted", StringType, true),
-    StructField("lang", StringType, true),
-    StructField("location", StringType, true)
+    StructField("created_at", StringType, nullable = true),
+    StructField("id", StringType, nullable = true),
+    StructField("id_str", StringType, nullable = true),
+    StructField("text", StringType, nullable = true),
+    StructField("retweet_count", StringType, nullable = true),
+    StructField("favorite_count", StringType, nullable = true),
+    StructField("favorited", StringType, nullable = true),
+    StructField("retweeted", StringType, nullable = true),
+    StructField("lang", StringType, nullable = true),
+    StructField("location", StringType, nullable = true)
   ))
 
   import org.apache.spark.sql.functions._
 
-  val data_stream_transformed = data_stream
+  var dataStreamTransformed = dataStream
+    .withWatermark("timestamp","5 minutes")
+
+  dataStreamTransformed = dataStream
     .selectExpr("CAST(value AS STRING) as json")
-    .select(from_json(col("json"),schema=schema).as("tweet"))
+    .select(from_json(col("json"), schema=schema).as("tweet"))
     .selectExpr(
       "tweet.created_at",
       "cast (tweet.id as long)",
@@ -46,11 +49,16 @@ object TweetStream extends App with Context {
       "tweet.lang as language_code"
     )
 
-  data_stream_transformed
+  dataStreamTransformed = dataStreamTransformed
+    .groupBy("language_code")
+    .agg(sum("favorite_count"), count("id"))
+
+  dataStreamTransformed
     .writeStream
+    .trigger(Trigger.ProcessingTime("10 seconds"))
+    .outputMode("update")
     .format("console")
     .option("truncate","true")
-    .trigger(Trigger.Continuous("5 second"))
     .start
     .awaitTermination
 }
