@@ -51,7 +51,7 @@ object TweetStream extends App with Context {
 
   dataStreamTransformed = dataStreamTransformed
     .groupBy("language_code")
-    .agg(sum("favorite_count"), count("id"))
+    .agg(count("id"))
 
   dataStreamTransformed
     .writeStream
