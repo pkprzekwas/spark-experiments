@@ -1,14 +1,22 @@
 package ranking
 
 import org.apache.log4j.{Level, Logger}
-import org.apache.spark.sql.SaveMode
-import helpers.Context
+import org.apache.spark.sql.{SaveMode, SparkSession}
+import org.apache.spark.SparkConf
 
-object MovieRanking extends App with Context {
+object MovieRanking extends App {
   Logger.getLogger("org").setLevel(Level.ERROR)
+
   import org.apache.spark.sql.functions._
 
-  val dataPath = "/tmp/the-movies-dataset"
+  val sparkConf = new SparkConf()
+    .setAppName("The Move dataset")
+  val sparkSession = SparkSession
+    .builder()
+    .config(sparkConf)
+    .getOrCreate()
+
+  val dataPath = "hdfs://ip-172-31-45-44.eu-west-1.compute.internal:8020/tmp/the-movie-dataset/"
   val ratings = sparkSession
     .read
     .option("header","true")
@@ -64,7 +72,7 @@ object MovieRanking extends App with Context {
     .write
     .mode(SaveMode.Overwrite)
     .options(tsvWithHeaderOptions)
-    .csv("/tmp/mr-out")
+    .csv("hdfs://ip-172-31-45-44.eu-west-1.compute.internal:8020/tmp/the-movie-dataset/spark-output")
 }
 
 

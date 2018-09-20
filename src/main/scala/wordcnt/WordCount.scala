@@ -8,11 +8,11 @@ object WordCount extends App {
     .setMaster("local[8]")
   val sc = new SparkContext(config)
 
-  val text = sc.textFile("/tmp/in.txt")
+  val text = sc.textFile("hdfs://ip-172-31-45-44.eu-west-1.compute.internal:8020/tmp/pan-tadeusz.txt")
   val counts = text
     .flatMap(line => line.toLowerCase.split("\\W+"))
     .map(word => (word, 1))
     .reduceByKey(_ + _)
 
-  counts.saveAsTextFile("/tmp/out")
+  counts.saveAsTextFile("hdfs://ip-172-31-45-44.eu-west-1.compute.internal:8020/tmp/out")
 }
