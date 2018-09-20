@@ -5,7 +5,6 @@ import org.apache.spark.{SparkContext, SparkConf}
 object WordCount extends App {
   val config = new SparkConf()
     .setAppName("WordCount")
-    .setMaster("local[8]")
   val sc = new SparkContext(config)
 
   val text = sc.textFile("hdfs://ip-172-31-45-44.eu-west-1.compute.internal:8020/tmp/pan-tadeusz.txt")
